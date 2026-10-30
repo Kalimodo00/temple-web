@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#160c08">
+  <title>隨身一炷香</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%23160c08%27/%3E%3Cpath d=%27M16 8v20%27 stroke=%27%239c3a26%27 stroke-width=%273%27/%3E%3Ccircle cx=%2716%27 cy=%277%27 r=%273%27 fill=%27%23ffb35a%27/%3E%3C/svg%3E">
+  <meta name="description" content="用手機上香、擲筊、求籤。在廟裡或在家拜神明、拜祖先都能用。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-view="home" data-scene="temple" data-mode="incense" data-step="">
+  <div id="fan" aria-hidden="true"></div>
+
+  <div id="plaque" aria-hidden="true"></div>
+
+  <svg id="censer" viewBox="0 0 320 210" aria-hidden="true">
+    <defs>
+      <linearGradient id="bronze" x1="0" x2="1">
+        <stop offset="0" stop-color="#3b2312"/><stop offset=".3" stop-color="#b98a45"/>
+        <stop offset=".5" stop-color="#ecc877"/><stop offset=".72" stop-color="#94682f"/>
+        <stop offset="1" stop-color="#2d1a0c"/>
+      </linearGradient>
+      <radialGradient id="ash" cy=".35"><stop offset="0" stop-color="#a59a8e"/><stop offset="1" stop-color="#4f4740"/></radialGradient>
+    </defs>
+    <path d="M62 150 34 204h26l34-48zM258 150l28 54h-26l-34-48z" fill="url(#bronze)"/>
+    <path d="M28 44c0 96 44 132 132 132s132-36 132-132z" fill="url(#bronze)"/>
+    <path d="M18 56c-16 0-16-34 4-34M302 56c16 0 16-34-4-34" fill="none" stroke="url(#bronze)" stroke-width="9"/>
+    <ellipse cx="160" cy="44" rx="134" ry="25" fill="url(#bronze)"/>
+    <ellipse cx="160" cy="44" rx="120" ry="18" fill="url(#ash)"/>
+    <text x="160" y="124" text-anchor="middle" font-size="44" font-weight="900" fill="#4a2a10" fill-opacity=".75" font-family="Noto Serif TC, serif">福</text>
+  </svg>
+
+  <canvas id="sticks" aria-hidden="true"></canvas>
+  <canvas id="smoke" aria-hidden="true"></canvas>
+
+  <div id="blocks" hidden>
+    <div class="block"><svg viewBox="0 0 120 60"><path d="M6 8c26 58 82 58 108 0-30 16-78 16-108 0z"/></svg></div>
+    <div class="block"><svg viewBox="0 0 120 60"><path d="M6 8c26 58 82 58 108 0-30 16-78 16-108 0z"/></svg></div>
+  </div>
+
+  <div id="canister" hidden>
+    <div id="lot-stick" hidden><span id="lot-number"></span></div>
+    <svg viewBox="0 0 140 220" aria-hidden="true">
+      <g stroke="#c9a15f" stroke-width="5" stroke-linecap="round">
+        <path d="M46 72 38 10M60 72 56 4M74 72l2-70M88 72l6-62M100 72l12-54"/>
+      </g>
+      <path d="M22 66h96l-8 148H30z" fill="#7d1f16"/>
+      <path d="M22 66h96l-2 22H24z" fill="#c9a15f"/>
+      <text x="70" y="158" text-anchor="middle" font-size="40" font-weight="900" fill="#ecc877" font-family="Noto Serif TC, serif">籤</text>
+    </svg>
+  </div>
+
+  <header>
+    <button id="back" type="button">‹ 換場景</button>
+    <span id="scene-name"></span>
+    <button id="open-guide" type="button">順序與禮儀</button>
+  </header>
+
+  <ul id="toast" aria-live="polite"></ul>
+
+  <section id="panel">
+    <div id="hint">
+      <h2 id="hint-title"></h2>
+      <p id="hint-detail"></p>
+      <p id="motion-note" hidden>沒有取得動作感應權限，請用按鈕操作。</p>
+    </div>
+    <p id="burn-status" hidden></p>
+    <button id="summary" type="button" hidden></button>
+    <div id="progress" hidden><div id="progress-bar"></div></div>
+    <button id="action" type="button"></button>
+    <button id="cancel" class="quiet" type="button" hidden>取消</button>
+    <nav id="tabs" aria-label="參拜項目">
+      <button type="button" data-mode="incense" aria-pressed="true">上香</button>
+      <button type="button" data-mode="toss" aria-pressed="false">擲筊</button>
+      <button type="button" data-mode="fortune" aria-pressed="false">求籤</button>
+      <button type="button" id="open-records">紀錄</button>
+    </nav>
+  </section>
+
+  <dialog id="setup" aria-labelledby="setup-title">
+    <h2 id="setup-title">香的設定</h2>
+    <fieldset>
+      <legend>大小</legend>
+      <div class="chips" id="size-chips"></div>
+    </fieldset>
+    <fieldset>
+      <legend>燒多久</legend>
+      <div class="chips" id="minute-chips"></div>
+      <label class="inline">自訂
+        <input id="custom-minutes" type="number" inputmode="numeric" min="1" max="240"> 分鐘
+      </label>
+    </fieldset>
+    <fieldset>
+      <legend>支數</legend>
+      <div class="chips" id="count-chips"></div>
+    </fieldset>
+    <fieldset id="for-whom-group" hidden>
+      <legend>為誰上香</legend>
+      <select id="for-whom"></select>
+    </fieldset>
+    <fieldset>
+      <legend>其他</legend>
+      <label class="check"><input id="keep-awake" type="checkbox"> 香燒著時保持螢幕常亮</label>
+      <label class="check"><input id="sound" type="checkbox"> 開啟音效（預設靜音）</label>
+    </fieldset>
+    <button class="primary" data-close type="button">完成</button>
+  </dialog>
+
+  <dialog id="guide" aria-labelledby="guide-title">
+    <h2 id="guide-title">順序與禮儀</h2>
+    <ol id="guide-list"></ol>
+    <button class="primary" data-close type="button">知道了</button>
+  </dialog>
+
+  <dialog id="records" aria-labelledby="records-title">
+    <h2 id="records-title">我的紀錄</h2>
+    <section>
+      <h3>祖先與忌日</h3>
+      <ul id="ancestor-list" class="rows"></ul>
+      <form id="ancestor-form">
+        <input id="ancestor-name" maxlength="12" required placeholder="稱呼，例如阿公" aria-label="祖先稱呼">
+        <div class="date-row">
+          <select id="ancestor-calendar" aria-label="曆法"><option value="lunar">農曆</option><option value="solar">國曆</option></select>
+          <select id="ancestor-month" aria-label="月"></select>
+          <select id="ancestor-day" aria-label="日"></select>
+        </div>
+        <button type="submit">新增</button>
+      </form>
+    </section>
+    <section>
+      <h3>籤詩收藏</h3>
+      <ul id="saved-list" class="rows"></ul>
+    </section>
+    <section>
+      <h3>參拜紀錄</h3>
+      <ul id="record-list" class="rows"></ul>
+    </section>
+    <small>資料只存在這支手機的瀏覽器裡，換手機或清除瀏覽器資料後會消失。</small>
+    <button class="primary" data-close type="button">關閉</button>
+  </dialog>
+
+  <dialog id="fortune" aria-labelledby="fortune-grade">
+    <p id="fortune-number"></p>
+    <p id="fortune-grade"></p>
+    <div id="fortune-poem"></div>
+    <p id="fortune-meaning"></p>
+    <small>本站原創示範籤詩，僅供祈福參考，不能取代醫療、法律或財務專業意見。</small>
+    <button id="fortune-save" class="primary" type="button">收藏這支籤</button>
+    <button class="quiet" data-close type="button">關閉</button>
+  </dialog>
+
+  <div id="home">
+    <div id="home-inner">
+      <h1>隨身一炷香</h1>
+      <p>今天在哪裡拜拜？</p>
+      <ul id="reminders"></ul>
+      <div id="scene-list"></div>
+      <small>使用時手機會詢問動作感應權限，用來偵測鞠躬、擲筊和搖籤。<br>資料只存在你的手機裡。</small>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
